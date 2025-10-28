@@ -17,13 +17,14 @@ function StartScreen({ onStart }) {
         padding: '20px',
         border: '1px solid #ccc',
         borderRadius: '8px',
-        fontSize: '1.1em',
+        fontSize: '1.3em',
+        lineHeight: '1.7',
     };
     const modesTextStyle = {
-        fontSize: '1.2em',
+        fontSize: '1.4em',
         maxWidth: '600px',
         margin: '0 0 25px 0',
-        color: '#333',
+        color: '#343a40',
     };
     const buttonStyle = {
         padding: '15px 30px',
@@ -31,13 +32,14 @@ function StartScreen({ onStart }) {
         cursor: 'pointer',
         borderRadius: '8px',
         border: 'none',
-        backgroundColor: '#55aee7',
+        backgroundColor: '#dc3545',
         color: 'white',
+        fontWeight: 'bold',
     };
     return (
         <div style={containerStyle}>
-            <h1>Real Or AI?</h1>
-            <p style={{ fontSize: '1.3em', maxWidth: '600px' }}>
+            <h1 style={{ fontSize: '3em', marginBottom: '10px', color:'#212529' }}>Real Or AI?</h1>
+            <p style={{ fontSize: '1.5em', maxWidth: '600px', color: '#343a40', marginBottom: '30px' }}>
                 Yapay zeka tarafından üretilen görseller her yerde! Peki sen, bir sanat eserini veya fotoğrafı yapay zeka ürününden ayırt edebilir misin? Dikkatini ve sezgilerini test etme zamanı!
             </p>
 
