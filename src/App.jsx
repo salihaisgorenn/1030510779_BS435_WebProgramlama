@@ -8,19 +8,19 @@ function App() {
     const [isCorrectGuess, setIsCorrectGuess] = useState(false);
     const [gameId, setGameId] = useState(0);
 
-    const handleGuess = (isAI) => {
-        if (isAI) {
+    const handleGuessDone = (isCorrect) => {
+        if (isCorrect) {
             setIsCorrectGuess(true);
         } else {
             setIsCorrectGuess(false);
         }
+
         setGameState('result');
     };
 
     const handlePlayAgain = () => {
         setGameState('playing');
         setGameId(prevId => prevId + 1);
-
     };
 
     if (gameState === 'start') {
@@ -31,7 +31,7 @@ function App() {
         return <StartScreen onStart={startGame} />;
 
     } else if (gameState === 'playing') {
-        return <GameScreen onGuess={handleGuess} gameId={gameId} />;
+        return <GameScreen onGuessDone={handleGuessDone} gameId={gameId} />;
 
     } else if (gameState === 'result') {
         return <ResultScreen isCorrect={isCorrectGuess} onPlayAgain={handlePlayAgain} />;

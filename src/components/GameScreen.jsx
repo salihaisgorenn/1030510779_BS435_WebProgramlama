@@ -10,21 +10,76 @@ function shuffleArray(array) {
     return newArray;
 }
 
-function GameScreen({ onGuess, gameId }) {
+// GÜNCELLENDİ: Prop'un adı artık 'onGuessDone'
+function GameScreen({ onGuessDone, gameId }) {
     const [currentImages, setCurrentImages] = useState([]);
+    const [guessCount, setGuessCount] = useState(0);
+    const [disabledImages, setDisabledImages] = useState([]);
+    const [hint, setHint] = useState(null);
 
     useEffect(() => {
+        setGuessCount(0);
+        setDisabledImages([]);
+        setHint(null);
+
+
         const realImages = gameImages.filter(img => !img.isAI);
         const aiImages = gameImages.filter(img => img.isAI);
+
+        if (aiImages.length < 1 || realImages.length < 2) {
+            console.error("Yeterli görsel verisi bulunamadı! Lütfen gameData.js dosyasını kontrol edin.");
+            return;
+        }
+
+
         const shuffledReals = shuffleArray(realImages).slice(0, 2);
         const shuffledAI = shuffleArray(aiImages).slice(0, 1);
+
+
         const finalImages = shuffleArray([...shuffledReals, ...shuffledAI]);
-        setCurrentImages(finalImages);
+        const imagesWithUniqueUrls = finalImages.map(image => {
+            let uniqueSrc = image.src;
+            if (image.src.includes('picsum.photos')) {
+                uniqueSrc = `${image.src}&v=${gameId}-${image.id}`;
+            }
+            return {
+                ...image,
+                displaySrc: uniqueSrc
+            };
+        });
+
+        setCurrentImages(imagesWithUniqueUrls);
+
     }, [gameId]);
 
     const handleImageClick = (image) => {
-        onGuess(image.isAI);
+        if (disabledImages.includes(image.id)) {
+            return;
+        }
+
+        if (image.isAI) {
+            onGuessDone(true);
+
+        } else {
+            setDisabledImages(prevDisabled => [...prevDisabled, image.id]);
+
+            if (guessCount === 0) {
+
+                setGuessCount(1);
+                const aiImageInRound = currentImages.find(img => img.isAI);
+                const fallbackHint = 'Bu resimdeki detaylar sence de tuhaf değil mi?';
+
+                if (aiImageInRound && aiImageInRound.hint) {
+                    setHint(aiImageInRound.hint);
+                } else {
+                    setHint(fallbackHint);
+                }
+            } else {
+                onGuessDone(false);
+            }
+        }
     };
+
 
     const containerStyle = {
         display: 'flex',
@@ -54,7 +109,7 @@ function GameScreen({ onGuess, gameId }) {
         padding: '10px',
         cursor: 'pointer',
         borderRadius: '8px',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        transition: 'transform 0.2s, box-shadow 0.2s, opacity 0.3s',
         width: '400px',
         height: '400px',
         backgroundColor: '#eee',
@@ -65,6 +120,17 @@ function GameScreen({ onGuess, gameId }) {
         objectFit: 'cover',
         borderRadius: '8px',
     };
+    const hintStyle = {
+        fontSize: '1.3em',
+        color: '#007bff',
+        fontWeight: 'bold',
+        height: '30px',
+        margin: '20px 0',
+        transition: 'opacity 0.5s',
+    };
+    if (currentImages.length === 0) {
+        return <div style={containerStyle}><h1>Görseller yükleniyor...</h1></div>
+    }
 
     return (
         <div style={containerStyle}>
@@ -73,23 +139,31 @@ function GameScreen({ onGuess, gameId }) {
 
             <div style={imageContainerStyle}>
                 {currentImages.map((image) => {
-                    const uniqueTimestamp = new Date().getTime() + image.id;
-                    const uniqueSrc = `${image.src}&t=${uniqueTimestamp}`;
+                    const isDisabled = disabledImages.includes(image.id);
+
                     return (
                         <div
                             key={image.id}
-                            style={imageCardStyle}
+                            style={{
+                                ...imageCardStyle,
+                                opacity: isDisabled ? 0.4 : 1,
+                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                            }}
                             onClick={() => handleImageClick(image)}
                         >
                             <img
-                                src={uniqueSrc}
-                                alt="Yapay zeka"
+                                src={image.displaySrc}
+                                alt="Yapay zeka "
                                 style={imageStyle}
                             />
                         </div>
                     );
                 })}
             </div>
+            <div style={hintStyle}>
+                {hint && `İpucu: ${hint}`}
+            </div>
+
         </div>
     );
 }

@@ -44,7 +44,7 @@ function ResultScreen({ isCorrect, onPlayAgain }) {
             <p style={textStyle}>
                 {isCorrect
                     ? 'Yapay zeka tarafından oluşturulan görseli buldun!'
-                    : 'Maalesef, bu doğru cevap değil!'
+                    : 'Maalesef, doğru cevabı bulamadın!'
                 }
             </p>
             <button style={buttonStyle} onClick={onPlayAgain}>
