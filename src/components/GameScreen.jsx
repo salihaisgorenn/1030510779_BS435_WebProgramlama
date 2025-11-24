@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { gameImages } from '../data/gameData.jsx';
+import { ArrowLeft } from 'lucide-react';
 
 function shuffleArray(array) {
     let newArray = [...array];
@@ -10,7 +11,7 @@ function shuffleArray(array) {
     return newArray;
 }
 
-function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNextRound }) {
+function GameScreen({ onGuessDone, gameId, currentMode, MODES, onNextRound, onBackToModes }) {
     const [currentImages, setCurrentImages] = useState([]);
     const [guessCount, setGuessCount] = useState(0);
     const [disabledImages, setDisabledImages] = useState([]);
@@ -39,6 +40,13 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
     }, [currentMode, timerRunning, timeLeft, MODES.SPRINT]);
 
     useEffect(() => {
+        if (currentMode === MODES.SPRINT) {
+            setTimerRunning(true);
+        }
+    }, [currentMode]);
+
+
+    useEffect(() => {
         if (feedback && currentMode === MODES.SPRINT) {
             const timeout = setTimeout(() => {
                 setFeedback(null);
@@ -53,11 +61,7 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
 
 
     useEffect(() => {
-        if (gameId === 1 && currentMode === MODES.SPRINT) {
-            setTimeLeft(INITIAL_TIME_MS);
-            setTimerRunning(true);
-            setScore(0);
-        } else if (currentMode === MODES.CLASSIC) {
+        if (currentMode === MODES.CLASSIC) {
             setTimerRunning(false);
         }
 
@@ -70,7 +74,7 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
         const aiImages = gameImages.filter(img => img.isAI);
 
         if (aiImages.length < 1 || realImages.length < 2) {
-            console.error("Yeterli görsel verisi bulunamadı! Lütfen gameData.js dosyasını kontrol edin.");
+            console.error("Yeterli görsel verisi bulunamadı!");
             return;
         }
 
@@ -78,6 +82,7 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
         const shuffledAI = shuffleArray(aiImages).slice(0, 1);
 
         const finalImages = shuffleArray([...shuffledReals, ...shuffledAI]);
+
         const imagesWithUniqueUrls = finalImages.map(image => {
             let uniqueSrc = image.src;
             if (image.src.includes('picsum.photos')) {
@@ -91,7 +96,7 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
 
         setCurrentImages(imagesWithUniqueUrls);
 
-    }, [gameId, currentMode]);
+    }, [gameId, currentMode, MODES.CLASSIC]);
 
 
     const handleImageClick = (image) => {
@@ -116,12 +121,7 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
                     setGuessCount(1);
                     const aiImageInRound = currentImages.find(img => img.isAI);
                     const fallbackHint = 'Bu resimdeki detaylar sence de tuhaf değil mi?';
-
-                    if (aiImageInRound && aiImageInRound.hint) {
-                        setHint(aiImageInRound.hint);
-                    } else {
-                        setHint(fallbackHint);
-                    }
+                    setHint(aiImageInRound?.hint || fallbackHint);
                 } else {
                     setFeedback('secondWrong');
                 }
@@ -131,12 +131,7 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
                     setGuessCount(1);
                     const aiImageInRound = currentImages.find(img => img.isAI);
                     const fallbackHint = 'Bu resimdeki detaylar sence de tuhaf değil mi?';
-
-                    if (aiImageInRound && aiImageInRound.hint) {
-                        setHint(aiImageInRound.hint);
-                    } else {
-                        setHint(fallbackHint);
-                    }
+                    setHint(aiImageInRound?.hint || fallbackHint);
                 } else {
                     onGuessDone(false);
                 }
@@ -153,57 +148,84 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
         textAlign: 'center',
         padding: '20px',
         fontFamily: 'sans-serif',
+        position: 'relative',
     };
+
+
+    const backButtonStyle = {
+        position: 'absolute',
+        top: '20px',
+        left: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        backgroundColor: 'white',
+        padding: '10px 20px',
+        borderRadius: '30px',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        border: '1px solid #e5e7eb',
+        cursor: 'pointer',
+        fontSize: '1rem',
+        fontWeight: '600',
+        color: '#374151',
+        zIndex: 100,
+        transition: 'all 0.2s ease',
+    };
+
     const headingStyle = {
-        fontSize: '3em',
+        fontSize: '2.5em',
         marginBottom: '10px',
+        marginTop: '60px',
+        fontWeight: '800',
+        color: '#1f2937'
     };
     const subHeadingStyle = {
-        fontSize: '1.5em',
-        marginBottom: '10px',
-        color: '#555',
+        fontSize: '1.2em',
+        marginBottom: '20px',
+        color: '#4b5563',
         minHeight: '27px',
     };
     const imageContainerStyle = {
         display: 'flex',
-        gap: '30px',
+        gap: '20px',
+        flexWrap: 'wrap',
+        justifyContent: 'center'
     };
     const imageCardStyle = {
-        border: '3px solid black',
-        padding: '10px',
+        border: 'none',
+        padding: '0',
         cursor: 'pointer',
-        borderRadius: '8px',
-        transition: 'transform 0.2s, box-shadow 0.2s, opacity 0.3s',
-        width: '400px',
-        height: '400px',
-        backgroundColor: '#eee',
+        borderRadius: '12px',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        width: '350px',
+        height: '350px',
+        backgroundColor: '#f3f4f6',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        overflow: 'hidden'
     };
     const imageStyle = {
         width: '100%',
         height: '100%',
         objectFit: 'cover',
-        borderRadius: '8px',
     };
     const hintStyle = {
-        fontSize: '1.3em',
-        color: '#007bff',
-        fontWeight: 'bold',
-        height: '30px',
-        margin: '20px 0',
-        transition: 'opacity 0.5s',
+        fontSize: '1.2em',
+        color: '#2563eb',
+        fontWeight: '600',
+        marginTop: '20px',
+        minHeight: '30px',
     };
 
     const timerStyle = {
         fontSize: '2em',
         fontWeight: 'bold',
-        color: timeLeft <= 10000 && currentMode === MODES.SPRINT ? '#dc3545' : '#28a745',
+        color: timeLeft <= 10000 ? '#dc2626' : '#16a34a',
         marginBottom: '15px',
     };
 
-
     const feedbackStyle = {
-        fontSize: '2em',
-        fontWeight: 'bolder',
+        fontSize: '1.8em',
+        fontWeight: 'bold',
         marginBottom: '15px',
         height: '40px',
         transition: 'opacity 0.3s',
@@ -212,11 +234,11 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
     const getFeedbackText = () => {
         switch(feedback) {
             case 'correct':
-                return { text: ' 🎉 Doğru Bildin!', color: '#28a745' };
+                return { text: ' 🎉 Doğru Bildin!', color: '#16a34a' };
             case 'wrong':
-                return { text: ' 💡 Yanlış Tahmin, İpucuna bak !', color: '#ffc107' };
+                return { text: ' 💡 Yanlış Tahmin, İpucuna bak!', color: '#d97706' };
             case 'secondWrong':
-                return { text: '❌ Yanlış Bildin', color: '#dc3545' };
+                return { text: '❌ Yanlış Bildin', color: '#dc2626' };
             default:
                 return { text: '', color: 'transparent' };
         }
@@ -239,6 +261,22 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
     return (
         <div style={containerStyle}>
 
+            <button
+                onClick={onBackToModes}
+                style={backButtonStyle}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 6px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                }}
+            >
+                <ArrowLeft size={20} />
+                <span>Mod Seçimine Dön</span>
+            </button>
+
             <h1 style={headingStyle}>{modeTitle}</h1>
 
             {currentMode === MODES.SPRINT && timeLeft > 0 && (
@@ -256,36 +294,40 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
             )}
 
             {currentMode === MODES.SPRINT && timeLeft <= 0 && (
-                <div style={{ ...timerStyle, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    SÜRE BİTTİ! Toplam Skor: {score}
+                <div style={{ ...timerStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#1f2937' }}>
+                    <div>SÜRE BİTTİ!</div>
+                    <div style={{fontSize: '0.8em', marginTop: '10px'}}>Toplam Skor: {score}</div>
 
-                    <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
+                    <div style={{ display: 'flex', gap: '20px', marginTop: '30px' }}>
 
                         <button
                             onClick={() => {
-                                setGameMode(currentMode);
+                                setTimeLeft(INITIAL_TIME_MS);
+                                setScore(0);
+                                setTimerRunning(true);
                                 onNextRound();
                             }}
                             style={{
                                 padding: '12px 25px',
-                                fontSize: '1em',
-                                backgroundColor: '#007bff',
+                                fontSize: '0.6em',
+                                backgroundColor: '#2563eb',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                boxShadow: '0 4px 6px rgba(37, 99, 235, 0.3)'
                             }}
                         >
                             Tekrar Oyna (60 sn)
                         </button>
 
                         <button
-                            onClick={() => setGameMode(MODES.NOT_SELECTED)}
+                            onClick={onBackToModes}
                             style={{
                                 padding: '12px 25px',
-                                fontSize: '1em',
-                                backgroundColor: '#343a40',
+                                fontSize: '0.6em',
+                                backgroundColor: '#4b5563',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
@@ -308,14 +350,21 @@ function GameScreen({ onGuessDone, gameId, currentMode, setGameMode, MODES, onNe
                             key={image.id}
                             style={{
                                 ...imageCardStyle,
-                                opacity: isDisabled ? 0.4 : 1,
+                                opacity: isDisabled ? 0.5 : 1,
                                 cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                transform: isDisabled ? 'none' : 'scale(1)',
                             }}
                             onClick={() => handleImageClick(image)}
+                            onMouseEnter={(e) => {
+                                if(!isDisabled) e.currentTarget.style.transform = 'translateY(-5px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                if(!isDisabled) e.currentTarget.style.transform = 'translateY(0)';
+                            }}
                         >
                             <img
                                 src={image.displaySrc}
-                                alt="Yapay zeka "
+                                alt="Seçenek"
                                 style={imageStyle}
                             />
                         </div>

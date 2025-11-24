@@ -14,8 +14,24 @@ function App() {
     const [gameState, setGameState] = useState('start');
     const [isCorrectGuess, setIsCorrectGuess] = useState(false);
     const [gameId, setGameId] = useState(0);
-
     const [gameMode, setGameMode] = useState(MODES.NOT_SELECTED);
+
+    const handleStartClick = () => {
+        setGameState('mode_selection');
+        window.scrollTo(0, 0);
+    };
+
+    const handleModeSelected = (selectedMode) => {
+        setGameMode(selectedMode);
+        setGameId(prevId => prevId + 1);
+        setGameState('playing');
+        window.scrollTo(0, 0);
+    };
+
+    const handleBackToModes = () => {
+        setGameState('mode_selection');
+        window.scrollTo(0, 0);
+    };
 
     const handleGuessDone = (isCorrect) => {
         if (isCorrect) {
@@ -35,21 +51,25 @@ function App() {
         setGameId(prevId => prevId + 1);
     };
 
-    if (gameMode === MODES.NOT_SELECTED) {
+    if (gameState === 'start') {
         return (
-            <ModeSelectionScreen setGameMode={setGameMode} MODES={MODES} />
+            <StartScreen
+                onStart={handleStartClick}
+                currentMode={gameMode}
+            />
         );
     }
 
-    if (gameState === 'start') {
-        const startGame = () => {
-            setGameId(prevId => prevId + 1);
-            setGameState('playing');
-        }
+    if (gameState === 'mode_selection') {
+        return (
+            <ModeSelectionScreen
+                setGameMode={handleModeSelected}
+                MODES={MODES}
+            />
+        );
+    }
 
-        return <StartScreen onStart={startGame} currentMode={gameMode} />;
-
-    } else if (gameState === 'playing') {
+    if (gameState === 'playing') {
         return (
             <GameScreen
                 onGuessDone={handleGuessDone}
@@ -57,14 +77,23 @@ function App() {
                 currentMode={gameMode}
                 setGameMode={setGameMode}
                 MODES={MODES}
-                onNextRound={handleNextRound} // YENİ PROP
+                onNextRound={handleNextRound}
+                onBackToModes={handleBackToModes}
             />
         );
-
-    } else if (gameState === 'result') {
-
-        return <ResultScreen isCorrect={isCorrectGuess} onPlayAgain={handlePlayAgain} currentMode={gameMode} />;
     }
+
+    else if (gameState === 'result') {
+        return (
+            <ResultScreen
+                isCorrect={isCorrectGuess}
+                onPlayAgain={handlePlayAgain}
+                currentMode={gameMode}
+            />
+        );
+    }
+
+    return null;
 }
 
 export { MODES };
