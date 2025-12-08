@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { gameImages } from '../data/gameData.jsx';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trophy } from 'lucide-react';
 
 function shuffleArray(array) {
     let newArray = [...array];
@@ -22,7 +22,23 @@ function GameScreen({ onGuessDone, gameId, currentMode, MODES, onNextRound, onBa
     const [timerRunning, setTimerRunning] = useState(false);
     const [score, setScore] = useState(0);
 
+    const [highScore, setHighScore] = useState(0);
+
     const [feedback, setFeedback] = useState(null);
+
+    useEffect(() => {
+        const savedHighScore = localStorage.getItem('realOrAiHighScore');
+        if (savedHighScore) {
+            setHighScore(parseInt(savedHighScore, 10));
+        }
+    }, []);
+
+    useEffect(() => {
+        if (currentMode === MODES.SPRINT && score > highScore) {
+            setHighScore(score);
+            localStorage.setItem('realOrAiHighScore', score);
+        }
+    }, [score, highScore, currentMode, MODES.SPRINT]);
 
     useEffect(() => {
         let interval = null;
@@ -172,6 +188,23 @@ function GameScreen({ onGuessDone, gameId, currentMode, MODES, onNextRound, onBa
         transition: 'all 0.2s ease',
     };
 
+    const highScoreBadgeStyle = {
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        backgroundColor: '#fffbeb',
+        padding: '10px 20px',
+        borderRadius: '30px',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        border: '1px solid #fcd34d',
+        color: '#b45309',
+        fontWeight: 'bold',
+        zIndex: 100,
+    };
+
     const headingStyle = {
         fontSize: '2.5em',
         marginBottom: '10px',
@@ -261,6 +294,13 @@ function GameScreen({ onGuessDone, gameId, currentMode, MODES, onNextRound, onBa
     return (
         <div style={containerStyle}>
 
+            {currentMode === MODES.SPRINT && (
+                <div style={highScoreBadgeStyle}>
+                    <Trophy size={20} />
+                    <span>En Yüksek: {highScore}</span>
+                </div>
+            )}
+
             <button
                 onClick={onBackToModes}
                 style={backButtonStyle}
@@ -294,9 +334,17 @@ function GameScreen({ onGuessDone, gameId, currentMode, MODES, onNextRound, onBa
             )}
 
             {currentMode === MODES.SPRINT && timeLeft <= 0 && (
-                <div style={{ ...timerStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#1f2937' }}>
-                    <div>SÜRE BİTTİ!</div>
-                    <div style={{fontSize: '0.8em', marginTop: '10px'}}>Toplam Skor: {score}</div>
+                <div style={{ ...timerStyle, display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#ffffff' }}>
+                    <div style={{fontSize: '1.2em'}}>SÜRE BİTTİ!</div>
+
+                    <div style={{fontSize: '1.5em', marginTop: '15px', color: '#fbbf24', fontWeight: 'bold'}}>
+                        Toplam Skor: {score}
+                    </div>
+
+                    <div style={{fontSize: '0.8em', marginTop: '10px', color: '#d97706', display: 'flex', alignItems: 'center', gap: '5px'}}>
+                        <Trophy size={20} />
+                        En Yüksek Skor: {highScore}
+                    </div>
 
                     <div style={{ display: 'flex', gap: '20px', marginTop: '30px' }}>
 
